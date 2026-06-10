@@ -1,0 +1,97 @@
+{
+  "name": "Alcovia Focus Session Success",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "focus-success",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.sessionId }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "check-session-id",
+      "name": "Has Session ID?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3001/mock-notify",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "sessionId", "value": "={{ $json.sessionId }}" },
+            { "name": "studentId", "value": "={{ $json.studentId }}" },
+            { "name": "message", "value": "=🎯 Focus complete! Streak now {{ $json.streak }} days, +{{ $json.coinsEarned }} coins earned. Total: {{ $json.totalCoins }} coins." },
+            { "name": "streak", "value": "={{ $json.streak }}" },
+            { "name": "coinsEarned", "value": "={{ $json.coinsEarned }}" },
+            { "name": "totalCoins", "value": "={{ $json.totalCoins }}" },
+            { "name": "targetMinutes", "value": "={{ $json.targetMinutes }}" },
+            { "name": "deviceId", "value": "={{ $json.deviceId }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-notification",
+      "name": "Send Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [700, 240]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"ok\": true, \"sessionId\": \"{{ $json.sessionId }}\", \"notified\": true }"
+      },
+      "id": "respond-ok",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [920, 240]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"ok\": false, \"reason\": \"missing sessionId\" }"
+      },
+      "id": "respond-skip",
+      "name": "Respond Skip",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [700, 400]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [[{ "node": "Has Session ID?", "type": "main", "index": 0 }]]
+    },
+    "Has Session ID?": {
+      "main": [
+        [{ "node": "Send Notification", "type": "main", "index": 0 }],
+        [{ "node": "Respond Skip", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Notification": {
+      "main": [[{ "node": "Respond OK", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": true,
+  "settings": {}
+}
