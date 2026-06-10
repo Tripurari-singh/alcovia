@@ -10,7 +10,7 @@ type Tab = 'focus' | 'syllabus' | 'dev';
 function Nav({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
   const tabs: { key: Tab; label: string }[] = [
     { key: 'focus', label: '⏱ Focus' },
-    { key: 'syllabus', label: '📚 Syllabus' },
+    { key: 'syllabus', label: ' Syllabus' },
     { key: 'dev', label: '🛠 Dev' },
   ];
   return (
